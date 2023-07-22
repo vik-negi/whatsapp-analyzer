@@ -46,7 +46,8 @@ def com_emojis(selected_user,df):
         if i <emo_thresold:
             other = other + i
     other_dict = {"Emojis":'Others', 'Occurence': other,'Percentage' :(other/sum)*100}
-    emo_pie_df = emo_pie_df.append(other_dict, ignore_index=True)
+    # emo_pie_df = emo_pie_df.append(other_dict, ignore_index=True)
+    emo_pie_df = pd.concat([emo_pie_df, other_dict], ignore_index=True)
     emoji_df.index = emoji_df.index+1
     emo_pie_df.index = emo_pie_df.index+1
     return emoji_df, emo_pie_df
