@@ -26,31 +26,62 @@ def fetch_stats(selected_user, df):
             links.append(word)
     return num_msg, len(words), show_msg, media, links
 
-def com_emojis(selected_user,df):
+
+import pandas as pd
+import emoji
+from collections import Counter
+
+def com_emojis(selected_user, df):
     if selected_user != 'Overall':
-        df = df[df['user']==selected_user]
+        df = df[df['user'] == selected_user]
+    
     emojis = []
     for msg in df['message']:
         emojis.extend([i for i in msg if i in emoji.UNICODE_EMOJI['en']])
+    
     emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))), columns=('Emojis', 'Occurence'))
-    sum=0
-    for i in emoji_df['Occurence']:
-        sum+=i
-    emo_per = round(((emoji_df['Occurence']/sum)*100),3)
-    emoji_df['Percentage'] = emo_per
+    total_occurrences = emoji_df['Occurence'].sum()
+    emoji_df['Percentage'] = round((emoji_df['Occurence'] / total_occurrences) * 100, 3)
 
-    emo_thresold = int(0.02*sum)
-    emo_pie_df = emoji_df[emoji_df['Occurence'] >=emo_thresold]
-    other = 0
-    for i in emoji_df['Occurence']:
-        if i <emo_thresold:
-            other = other + i
-    other_dict = {"Emojis":'Others', 'Occurence': other,'Percentage' :(other/sum)*100}
-    # emo_pie_df = emo_pie_df.append(other_dict, ignore_index=True)
-    emo_pie_df = pd.concat([emo_pie_df, other_dict], ignore_index=True)
-    emoji_df.index = emoji_df.index+1
-    emo_pie_df.index = emo_pie_df.index+1
+    emo_threshold = int(0.02 * total_occurrences)
+    emo_pie_df = emoji_df[emoji_df['Occurence'] >= emo_threshold]
+    
+    other_occurrences = emoji_df[emoji_df['Occurence'] < emo_threshold]['Occurence'].sum()
+    other_dict = {"Emojis": 'Others', 'Occurence': other_occurrences, 'Percentage': (other_occurrences / total_occurrences) * 100}
+    
+    # Use pd.concat() to concatenate the 'Others' category DataFrame with emo_pie_df
+    emo_pie_df = pd.concat([emo_pie_df, pd.DataFrame([other_dict])], ignore_index=True)
+    
+    emoji_df.index = emoji_df.index + 1
+    emo_pie_df.index = emo_pie_df.index + 1
     return emoji_df, emo_pie_df
+
+# def com_emojis(selected_user,df):
+#     if selected_user != 'Overall':
+#         df = df[df['user']==selected_user]
+#     emojis = []
+#     for msg in df['message']:
+#         emojis.extend([i for i in msg if i in emoji.UNICODE_EMOJI['en']])
+#     emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))), columns=('Emojis', 'Occurence'))
+#     sum=0
+#     for i in emoji_df['Occurence']:
+#         sum+=i
+#     emo_per = round(((emoji_df['Occurence']/sum)*100),3)
+#     emoji_df['Percentage'] = emo_per
+
+#     emo_thresold = int(0.02*sum)
+#     emo_pie_df = emoji_df[emoji_df['Occurence'] >=emo_thresold]
+#     other = 0
+#     for i in emoji_df['Occurence']:
+#         if i <emo_thresold:
+#             other = other + i
+#     other_dict = {"Emojis":'Others', 'Occurence': other,'Percentage' :(other/sum)*100}
+#     # emo_pie_df = emo_pie_df.append(other_dict, ignore_index=True)
+    
+#     emo_pie_df = pd.concat([emo_pie_df, other_dict], ignore_index=True)
+#     emoji_df.index = emoji_df.index+1
+#     emo_pie_df.index = emo_pie_df.index+1
+#     return emoji_df, emo_pie_df
 
 
 def busy_user(df):
